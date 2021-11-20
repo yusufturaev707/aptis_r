@@ -1,9 +1,29 @@
 import pandas as pd
 import os
 import docx
-from docx import Document
+from docxcompose.composer import Composer
+from docx import Document as Document_compose
+from PyPDF2 import PdfFileReader, PdfFileWriter
 
 sana = ''
+
+
+def split_pdf(file, date):
+    path = f"results_pdf/{date}"
+    if not os.path.isdir(path):
+        os.mkdir(path=path)
+    pdf = PdfFileReader(open(file, "rb"))
+    n = pdf.numPages
+    print(f"nn={n}")
+    k = 0
+    for i in range(n):
+        if i % 2 == 0:
+            newpdf = PdfFileWriter()
+            newpdf.addPage(pdf.getPage(i))
+            newpdf.addPage(pdf.getPage(1))
+            k += 1
+            with open(f"results_pdf/{date}/page-{k}.pdf", "wb") as f:
+                newpdf.write(f)
 
 
 def get_all_names(file):
@@ -21,7 +41,7 @@ def get_all_names(file):
 
 def rename_file(names, date):
     for i in range(len(names)):
-        os.rename(f'results_pdf/{date}/results-{i + 1}.pdf', f'results_pdf/{date}/{names[i]}.pdf')
+        os.rename(f'results_pdf/{date}/page-{i + 1}.pdf', f'results_pdf/{date}/{names[i]}.pdf')
 
 
 def get_month(date):
@@ -87,16 +107,12 @@ def readtxt(filename):
 def writetxt(data, filename):
     doc = docx.Document(filename)
     for row in data:
-        doc.paragraphs[14].runs[3].text = get_month(sana)
-        doc.paragraphs[14].runs[13].text = f"{row[0]}"
+        doc.paragraphs[15].runs[3].text = get_month(sana)
+        doc.paragraphs[15].runs[13].text = f"{row[0]}"
         path = f"xatlar/{sana}"
         if not os.path.isdir(path):
             os.mkdir(path=path)
         doc.save(f"{path}/{row[0]}.docx")
-
-
-from docxcompose.composer import Composer
-from docx import Document as Document_compose
 
 
 def combine_all_docx(filename_master, files_list):
