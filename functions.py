@@ -3,7 +3,7 @@ import os
 import docx
 from docxcompose.composer import Composer
 from docx import Document as Document_compose
-from PyPDF2 import PdfFileReader, PdfFileWriter
+import PyPDF2
 
 sana = ''
 
@@ -12,13 +12,13 @@ def split_pdf(file, date):
     path = f"results_pdf/{date}"
     if not os.path.isdir(path):
         os.mkdir(path=path)
-    pdf = PdfFileReader(open(file, "rb"))
+    pdf = PyPDF2.PdfFileReader(open(file, "rb"))
     n = pdf.numPages
     print(f"nn={n}")
     k = 0
     for i in range(n):
         if i % 2 == 0:
-            newpdf = PdfFileWriter()
+            newpdf = PyPDF2.PdfFileWriter()
             newpdf.addPage(pdf.getPage(i))
             newpdf.addPage(pdf.getPage(1))
             k += 1
