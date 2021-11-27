@@ -14,7 +14,7 @@ def split_pdf(file, date):
         os.mkdir(path=path)
     pdf = PyPDF2.PdfFileReader(open(file, "rb"))
     n = pdf.numPages
-    print(f"nn={n}")
+    print(f"n={n}")
     k = 0
     for i in range(n):
         if i % 2 == 0:
@@ -36,6 +36,13 @@ def get_all_names(file):
         df = pd.DataFrame(data)
         df.fillna(0, inplace=True)
         names.append(df.iloc[5, 3])
+    index = None
+    for name in names:
+        if names.count(name) > 1:
+            index = names.index(name)
+            names[index] = f" {names[index]} "
+            break
+
     return names
 
 
