@@ -1,31 +1,55 @@
 from functions import *
+from db_access.db_connect import *
 
 if __name__ == '__main__':
-
     date = input("Sanani kiriting: ")
 
-    print("1-split pdf\n2-Xatlarni yozish\n3-Kandedatlarni ismini pdf faylni nomiga yozish")
+    print("1-split pdf\n"
+          "2-Kandedatlarni ismini pdf faylni nomiga yozish\n"
+          "3-Xatlarni yozish\n"
+          "4-MS Access bazaga yozish\n"
+          "0-Dasturdan chiqish\n"
+          )
 
-    ish = int(input("Ish="))
+    print("Loading...")
+    ish = None
+    Users = None
 
-    if ish == 1:
-        file = f'main/{date}/aptis.pdf'
-        split_pdf(file, date)
+    while ish != 0:
 
-    elif ish == 2:
-        file = f'main/{date}/results.xlsx'
-        Data = load_data(file)
-        word = readtxt('base.docx')
-        writetxt(Data, 'base.docx')
+        ish = int(input("Ish="))
 
-        files = sorted(os.listdir(f'xatlar/{date}/'))
-        combine_all_docx(f'xatlar/{date}/{files[0]}', [x for x in files if x != files[0]])
+        if ish == 1:
+            file = f'main/{date}/aptis.pdf'
+            split_pdf(file, date)
 
-    elif ish == 3:
-        file = f'main/{date}/sheets.xlsx'
-        names = get_all_names(file)
-        print(names)
-        rename_file(names, date)
+        elif ish == 2:
+            file = f'main/{date}/sheets.xlsx'
+            names = get_all_names(file)
+            rename_file(names, date)
 
-    else:
-        print("Xato son kiritdingiz !")
+        elif ish == 3:
+            file = f'main/{date}/results.xlsx'
+            C, B, Users = load_data(file)
+            df = pd.DataFrame(Users, columns=["Familiya", "Ism", "Kun", "Oy", "Yil", "Grammar", "Listening", "Reading",
+                                              "Speaking", "Writing", "CEFR"])
+            if not os.path.isfile("users/users.xlsx"):
+                df.to_excel(f"users/users.xlsx", sheet_name=f"aptis_{date}")
+            else:
+                with pd.ExcelWriter('users/users.xlsx',
+                                    mode='a') as writer:
+                    df.to_excel(writer, sheet_name=f"aptis_{date}")
+            word = readtxt('base.docx')
+            if len(C) != 0:
+                writetxt(C, 'base.docx')
+                files = sorted(os.listdir(f'xatlar/{date}/'))
+                combine_all_docx(f'xatlar/{date}/{files[0]}', [x for x in files if x != files[0]])
+
+
+        elif ish == 4:
+            # write_data(Users, date)
+            write_newdata(Users)
+
+        else:
+            if ish == 0:
+                break

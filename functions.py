@@ -14,7 +14,6 @@ def split_pdf(file, date):
         os.mkdir(path=path)
     pdf = PyPDF2.PdfFileReader(open(file, "rb"))
     n = pdf.numPages
-    print(f"n={n}")
     k = 0
     for i in range(n):
         if i % 2 == 0:
@@ -68,7 +67,7 @@ def get_month(date):
     }
     day = date.split('.')[0]
     month = date.split('.')[1]
-    return f"{day}-{switcher.get(int(month), 'Noaniq')}"
+    return f"{int(day)}-{switcher.get(int(month), 'Noaniq')}"
 
 
 def merge_fio(firstname, lastname):
@@ -76,31 +75,72 @@ def merge_fio(firstname, lastname):
     return fio
 
 
+def get_CEFR(df, kun=None, oy=None, yil=None, value=None, start=5, step=6):
+    A = []
+    n = df.shape[0]
+
+    if value != None:
+        for i in range(start, n, step):
+            a = []
+
+            if df.iloc[i, 2] == value:
+                a.append(merge_fio(df.iloc[i, 0], df.iloc[i, 1]))
+                a.append(df.iloc[i, 2])
+                A.append(a)
+
+    if value == None:
+        for i in range(5, n, 6):
+
+            a = []
+            ism = fam = gram = None
+
+            ism = df.iloc[i, 0]
+            fam = df.iloc[i, 1]
+            cefr = df.iloc[i, 2]
+
+            gram = df.iloc[i + 1, 3]
+            listining = df.iloc[i + 2, 2]
+            reading = df.iloc[i + 3, 2]
+            speaking = df.iloc[i + 4, 2]
+            writing = df.iloc[i + 5, 2]
+
+            a.append(fam)
+            a.append(ism)
+            a.append(int(kun))
+            a.append(int(oy))
+            a.append(int(yil))
+            a.append(gram)
+            a.append(listining)
+            a.append(reading)
+            a.append(speaking)
+            a.append(writing)
+            a.append(cefr)
+            print(a)
+            A.append(a)
+
+    return A
+
+
 def load_data(file):
     data = pd.read_excel(file)
-    df = pd.DataFrame(data, columns=['Unnamed: 3', 'Unnamed: 4', 'Unnamed: 10', 'Unnamed: 17'])
-    n = df.shape[0]
-    print(f'n={n}')
-    m = df.shape[1]
-    print(f'm={m}')
+    df = pd.DataFrame(data, columns=['Unnamed: 3', 'Unnamed: 4', 'Unnamed: 10', 'Unnamed: 11', 'Unnamed: 17'])
 
-    date = df.iloc[6, 3]
+    date = df.iloc[6, 4]
     kun, oy, yil = date.split('/')
     global sana
     sana = f"{kun}.{oy}.{yil}"
 
-    A = []
-    for i in range(5, n, 6):
-        a = []
-        if df.iloc[i, 2] == 'C':
-            a.append(merge_fio(df.iloc[i, 0], df.iloc[i, 1]))
-            a.append(df.iloc[i, 2])
-            A.append(a)
+    B = get_CEFR(df, value="B2")
+    C = get_CEFR(df, value="C")
+    All = get_CEFR(df, kun, oy, yil)
 
-    df = pd.DataFrame(A, columns=["FIO", "CEFR"])
-    df.to_excel(f'cefrs_C/{sana}.xlsx')
+    df = pd.DataFrame(B, columns=["FIO", "CEFR"])
+    df.to_excel(f'cefrs_B2/{sana}_{len(B)}.xlsx')
 
-    return A
+    df = pd.DataFrame(C, columns=["FIO", "CEFR"])
+    df.to_excel(f'cefrs_C/{sana}_{len(C)}.xlsx')
+
+    return C, B, All
 
 
 def readtxt(filename):
