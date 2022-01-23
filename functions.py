@@ -154,8 +154,9 @@ def readtxt(filename):
 def writetxt(data, filename):
     doc = docx.Document(filename)
     for row in data:
-        doc.paragraphs[15].runs[3].text = get_month(sana)
-        doc.paragraphs[15].runs[13].text = f"{row[0]}"
+        doc.paragraphs[15].runs[4].text = get_month(sana)
+        doc.paragraphs[15].runs[14].text = f"{row[0]}"
+
         path = f"xatlar/{sana}"
         if not os.path.isdir(path):
             os.mkdir(path=path)
