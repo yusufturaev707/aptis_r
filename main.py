@@ -39,9 +39,9 @@ if __name__ == '__main__':
                 with pd.ExcelWriter('users/users.xlsx',
                                     mode='a') as writer:
                     df.to_excel(writer, sheet_name=f"aptis_{date}")
-            word = readtxt('base.docx')
+            word = readtxt('base_word/base.docx')
             if len(C) != 0:
-                writetxt(C, 'base.docx')
+                writetxt(C, 'base_word/base.docx')
                 files = sorted(os.listdir(f'xatlar/{date}/'))
                 combine_all_docx(f'xatlar/{date}/{files[0]}', [x for x in files if x != files[0]])
 
