@@ -1,6 +1,9 @@
 import pandas as pd
+import json
+import datetime
 import os
 import docx
+from dateutil.relativedelta import relativedelta
 from docxcompose.composer import Composer
 from docx import Document as Document_compose
 import PyPDF2
@@ -10,8 +13,11 @@ sana = ''
 
 def split_pdf(file, date):
     path = f"results_pdf/{date}"
+    path_id = f"results_id/{date}"
     if not os.path.isdir(path):
         os.mkdir(path=path)
+    if not os.path.isdir(path_id):
+        os.mkdir(path=path_id)
     pdf = PyPDF2.PdfFileReader(open(file, "rb"))
     n = pdf.numPages
     k = 0
@@ -22,6 +28,9 @@ def split_pdf(file, date):
             newpdf.addPage(pdf.getPage(1))
             k += 1
             with open(f"results_pdf/{date}/page-{k}.pdf", "wb") as f:
+                newpdf.write(f)
+
+            with open(f"results_id/{date}/page-{k}.pdf", "wb") as f:
                 newpdf.write(f)
 
 
@@ -45,9 +54,93 @@ def get_all_names(file):
     return names
 
 
-def rename_file(names, date):
+def load_id(file):
+    xls = pd.ExcelFile(file)
+    sheets = xls.sheet_names
+
+    data = pd.read_excel(xls, sheet_name=sheets[0])
+    df = pd.DataFrame(data)
+    df.fillna(0, inplace=True)
+    n = df.shape[0]
+    users = []
+    for i in range(n):
+        id = df.iloc[i, 0]
+        fam = df.iloc[i, 1]
+        ism = df.iloc[i, 2]
+        sharf = df.iloc[i, 3]
+        seriya = df.iloc[i, 4]
+        raqam = df.iloc[i, 5]
+        phone = df.iloc[i, 6]
+        test_date = df.iloc[i, 7]
+
+        user = {
+            "id": id,
+            "fio": f"{ism} {fam}",
+            "full_name": f"{fam} {ism} {sharf}",
+            "passport": f"{seriya} {raqam}",
+            "phone": phone,
+            "test_date": test_date,
+        }
+        users.append(user)
+
+    return users
+
+
+def rename_file(names, date, names_id=None, skills=None, can_ref=None):
+    k = 0
+    users = []
     for i in range(len(names)):
         os.rename(f'results_pdf/{date}/page-{i + 1}.pdf', f'results_pdf/{date}/{names[i]}.pdf')
+        id = None
+        is_have = 0
+        user = []
+        for j in range(len(names_id)):
+            if names[i] == names_id[j]['fio']:
+                is_have = 1
+                k += 1
+                id = names_id[j]['id']
+                user.append(id)
+                user.append(skills[i])
+                users.append(user)
+                os.rename(f'results_id/{date}/page-{k}.pdf', f'results_id/{date}/{id}.pdf')
+                break
+        if is_have == 0:
+            k += 1
+
+    df = pd.DataFrame(users, columns=["abitur_id", "Result"])
+    df.to_excel(f'results_id/{date}/res_json.xlsx')
+
+    persons = []
+    for i in range(len(can_ref)):
+        person = []
+        for j in range(len(names_id)):
+            if can_ref[i][1] == names_id[j]['fio']:
+                number = can_ref[i][0]
+                full_name = names_id[j]['full_name']
+                s_code = names_id[j]['id']
+                passport = names_id[j]['passport']
+                language = "Ingliz tili"
+                regnum = can_ref[i][0]
+
+                day_now = names_id[j]['test_date']
+                day, month, year = str(day_now).split('.')
+                test_date = datetime.date(int(year), int(month), int(day))
+                untill_years = test_date + relativedelta(years=3)
+                untill_years = untill_years.strftime("%d.%m.%y")
+
+                term = f"{names_id[j]['test_date']}-{untill_years}"
+
+                person.append(number)
+                person.append(full_name)
+                person.append(s_code)
+                person.append(passport)
+                person.append(language)
+                person.append(regnum)
+                person.append(term)
+                persons.append(person)
+                break
+    df1 = pd.DataFrame(persons, columns=["number", "full_name", "s_code", "passport", "language", "regnum", "term"])
+    df1.to_excel(f'result_excel/{date}.xlsx')
 
 
 def get_month(date):
@@ -90,7 +183,6 @@ def get_CEFR(df, kun=None, oy=None, yil=None, value=None, start=5, step=6):
 
     if value == None:
         for i in range(5, n, 6):
-
             a = []
             ism = fam = gram = None
 
@@ -121,12 +213,12 @@ def get_CEFR(df, kun=None, oy=None, yil=None, value=None, start=5, step=6):
     return A
 
 
-def load_data(file):
+def load_data(file, date):
     data = pd.read_excel(file)
     df = pd.DataFrame(data, columns=['Unnamed: 3', 'Unnamed: 4', 'Unnamed: 10', 'Unnamed: 11', 'Unnamed: 17'])
 
-    date = df.iloc[6, 4]
-    kun, oy, yil = date.split('/')
+    # date = df.iloc[6, 4]
+    kun, oy, yil = date.split('.')
     global sana
     sana = f"{kun}.{oy}.{yil}"
 

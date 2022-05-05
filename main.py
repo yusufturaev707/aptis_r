@@ -1,9 +1,10 @@
 from functions import *
 from db_access.db_connect import *
+from readEx import load_skills
 
 if __name__ == '__main__':
-    date = input("Sanani kiriting: ")
 
+    date = input("Sanani kiriting: ")
     print("1-split pdf\n"
           "2-Kandedatlarni ismini pdf faylni nomiga yozish\n"
           "3-Xatlarni yozish\n"
@@ -25,12 +26,16 @@ if __name__ == '__main__':
 
         elif ish == 2:
             file = f'main/{date}/sheets.xlsx'
+            file_id = f'main/{date}/data_id.xlsx'
             names = get_all_names(file)
-            rename_file(names, date)
+            load_skills, can_ref = load_skills(file)
+            names_id = load_id(file_id)
+            # rename_file(names, date)
+            rename_file(names, date, names_id, load_skills, can_ref)
 
         elif ish == 3:
             file = f'main/{date}/results.xlsx'
-            C, B, Users = load_data(file)
+            C, B, Users = load_data(file, date)
             df = pd.DataFrame(Users, columns=["Familiya", "Ism", "Kun", "Oy", "Yil", "Grammar", "Listening", "Reading",
                                               "Speaking", "Writing", "CEFR"])
             if not os.path.isfile("users/users.xlsx"):

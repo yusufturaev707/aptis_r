@@ -1,18 +1,30 @@
-user = [
-    'Turaev66', 'Yusuf66', 'A'
-]
+import pandas as pd
+import os
 
-users = [
-    ['Turaev', 'Yusuf', 'A', 'B', 'C'],
-    ['Turaev1', 'Yusuf1', 'A', 'B', 'C'],
-    ['Turaev2', 'Yusuf2', 'A', 'B', 'C'],
-    ['Turaev6', 'Yusuf6', 'A', 'B', 'C'],
-    ['Turaev4', 'Yusuf4', 'A', 'B', 'C'],
-    ['Turaev5', 'Yusuf5', 'A', 'B', 'C'],
-    ['Turaev6', 'Yusuf6', 'A', 'B', 'C'],
-    ['Turaev7', 'Yusuf7', 'A', 'B', 'C'],
-]
+file = "main/09.04.2022/sheets.xlsx"
 
-for us in users:
-    if not (user[0] and user[1]) in us:
-        print(True)
+xls = pd.ExcelFile(file)
+sheets = xls.sheet_names
+# n = len(sheets)
+results = []
+
+data = pd.read_excel(xls, sheet_name=sheets[0])
+print(data)
+df = pd.DataFrame(data)
+df.fillna(0, inplace=True)
+n = df.shape[0]
+
+users = []
+for i in range(n):
+    id = df.iloc[i, 0]
+    fam = df.iloc[i, 1]
+    ism = df.iloc[i, 2]
+
+    user = {
+        'id': id,
+        'fio': f"{ism} {fam}",
+    }
+    users.append(user)
+
+# for i in users:
+#     print(i)
