@@ -6,6 +6,6 @@ results_pdf/
 results_id/
 xatlar/
 main/
-readExcell.ipynb/
-Pipfile/
-Pipfile.lock/
+readExcell.ipynb
+Pipfile
+Pipfile.lock
